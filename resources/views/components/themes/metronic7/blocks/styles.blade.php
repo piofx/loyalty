@@ -9,6 +9,7 @@
 <!--end::Global Theme Styles-->
 
 <!--begin::Page Vendors Styles(used by this page)-->
+<link href="{{ asset('themes/metronic/css/pages/login/login-1.css?v=7.0.5') }}" rel="stylesheet" type="text/css" />
 <!--end::Page Vendors Styles--
 
 <!-- Bootstrap -->

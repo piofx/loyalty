@@ -31,22 +31,22 @@
         </div>
         <!-- End Actions -->
 
-        <div class="bg-white p-3 rounded-lg shadow">
-            <div class="d-flex justify-content-between align-items-center">
+        <div class="bg-white p-5 rounded-lg shadow">
+            <div class="d-block d-lg-flex justify-content-between align-items-center">
 
-                <form action="{{ route($app->module.'.index') }}" class="d-flex justify-content-between align-items-center border border-secondary rounded pl-1 pr-3">
-                    <input type="text" class="form-control border-0" placeholder="Search" name="query">
+                <form action="{{ route($app->module.'.index') }}" class="bg-light text-dark d-flex justify-content-between align-items-center rounded pl-1 pr-3">
+                    <input type="text" class="form-control bg-light text-dark border-0" placeholder="Search" name="query">
                     <i class="fas fa-search" type="submit"></i>
                 </form>
 
                 <form action="{{ route($app->module.'.create') }}" class="d-flex align-items-center">
-                    <button type="submit" class="btn btn-light-primary font-weight-bold ml-2 d-flex align-items-center"><i class="fas fa-plus fa-sm"></i> Add Record</button>
+                    <button type="submit" class="btn btn-light-primary font-weight-bold mt-3 mt-lg-0 ml-lg-2 d-flex align-items-center"><i class="fas fa-plus fa-sm"></i> Add Record</button>
                 </form>
             </div>
             <!-- Table -->
             <div class="table-responsive">
-                <table class="table table-borderless bg-white mt-3">
-                    <tr class="bg-light">
+                <table class="table table-borderless bg-white mt-3 align-middle">
+                    <tr class="bg-light align-middle">
                         <th scope="col" class="p-3">#</th>
                         <th scope="col" class="p-3 text-decoration-none">@sortablelink('name', 'Name', ['filter' => 'active, visible'], ['class' => 'text-decoration-none text-dark text-hover-primary'])</th>
                         <th scope="col" class="p-3">Phone</th>
@@ -63,7 +63,7 @@
                                 $remaining_credits = $remaining_credits + ($reward->credits - $reward->redeem);
                             }
                         @endphp
-                        <tr>
+                        <tr class="align-middle">
                             <th scope="row" class="px-3 align-middle">{{ $objs->currentpage() ? ($objs->currentpage()-1) * $objs->perpage() + ( $key + 1) : $key+1 }}</th>
                             <td class="px-3 py-3 font-weight-bolder d-flex align-items-center">
                                 <!--begin::Pic-->
@@ -74,7 +74,7 @@
                                 </div>
                                 <!--end::Pic-->
                                 <div>
-                                    <h5 class="m-0 font-weight-bolder">{{ $obj->name }}</h5>
+                                    <h5 class="m-0 font-weight-bolder"><a href="{{ route($app->module.'.show', $obj->id) }}" class="text-decoration-none text-dark">{{ $obj->name }}</a></h5>
                                     <span class="text-muted">{{ $obj->email }}</span>
                                 </div>
                             </td>

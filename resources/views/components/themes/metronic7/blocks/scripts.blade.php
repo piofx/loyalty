@@ -14,6 +14,7 @@
 <script src="{{ asset('themes/metronic/plugins/custom/datatables/datatables.bundle.js?v=7.0.5') }}"></script>
 <script src="{{ asset('themes/metronic/js/pages/features/charts/apexcharts.js?v=7.0.5') }}"></script>
 <script src="{{ asset('themes/metronic/js/pages/widgets.js?v=7.0.5') }}"></script>
+<script src="{{ asset('themes/metronic/js/pages/custom/login/login-general.js?v=7.0.5') }}"></script>
 <!--end::Page Scripts-->
 
 <!-- Custom JS -->

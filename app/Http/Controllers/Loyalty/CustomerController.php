@@ -9,6 +9,7 @@ use App\Models\Loyalty\Customer as Obj;
 use App\Models\Loyalty\Reward;
 
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 
 class CustomerController extends Controller
@@ -199,8 +200,13 @@ class CustomerController extends Controller
 
         // Initialize required variables
         $customers = array();
+        $rewards = array();
         $year = date("Y");
         $month = date("m");
+
+        // Today's date
+        $date = Carbon::now();
+        $current_date = $date->toDateString();
 
         // Get total count of customers in the database
         $total_customers = $obj->all()->count();
@@ -210,21 +216,21 @@ class CustomerController extends Controller
 
         // Check if filter not empty
         if(!empty($filter)){
-            if($filter == 'month'){
-                // Retrieve records of that particular year
-                $objs = $obj->whereYear('created_at', $year)->get();
+            if($filter == 'today'){
+                // Retrieve records
+                $objs = $obj->where('created_at', "LIKE", "%{$current_date}%")->orderBy('created_at', "asc")->get();
 
-                // Get count of the customers in that particular year
+                // Get the number of customers
                 $new_customers = $objs->count();
 
-                // Create an array of customers in that particular year for each month
+                // Create an array of customers 
                 // Associative array format:
                     // {
-                    //      "Jan": 1,
-                    //      "Feb": 2, 
+                    //      "1": 9,
+                    //      "2": 15, 
                     // }
                 foreach($objs as $obj){
-                    $key = date("M",strtotime($obj['created_at']));
+                    $key = date("h A",strtotime($obj['created_at']));
                     if(array_key_exists($key, $customers)){
                         $customers[$key] += 1;
                     }
@@ -235,48 +241,107 @@ class CustomerController extends Controller
                     }
                 }
 
-                // Retrieve records of that particular year
-                $reward_objs = $reward->whereYear('created_at', $year)->get();
+                // Retrieve credit and redeem points 
+                $reward_objs = $reward->whereMonth('created_at', $month)->orderBy("created_at", "desc")->get();
 
-                // Create an array to store the rewards data
-                $rewards = array();
-            
-                // Create an array of credit and redeem points of that particular year for each month
+                // Create an array of credit and redeem points of that particular month for each day
                 // Associative array format:
                     // {
-                    //      "Jan": {
+                    //      "2": {
                     //                  "credits": 100,
                     //                  "redeem": 40
                     //              },
-                    //      "Feb": {
+                    //      "5": {
                     //                  "credits": 30,
                     //                  "redeem":10,
                     //              }, 
                     // }
                 foreach($reward_objs as $reward){
-                    $month = date("M",strtotime($reward['created_at']));
-                    if(array_key_exists($month, $rewards)){
-                        $rewards[$month]['credits'] += $reward['credits'];
-                        $rewards[$month]['redeem'] += $reward['redeem'];
+                    $key = date("h A",strtotime($reward['created_at']));
+                    if(array_key_exists($key, $rewards)){
+                        $rewards[$key]['credits'] += $reward['credits'];
+                        $rewards[$key]['redeem'] += $reward['redeem'];
                     }
                     else{
                         $rewards += array(
-                            $month => array(
+                            $key => array(
                                 "credits" => $reward['credits'],
                                 "redeem" => $reward['redeem'],
                             ),
                         ); 
                     }
                 }
+
+                // Retrieve latest rewards transactions
+                $reward_transactions = $reward->where("created_at", "LIKE", "%{$current_date}%")->orderBy('id', 'desc')->limit(10)->get();
             }
-            else if($filter == 'day'){
-                // Retrieve records of that particular month
+            else if($filter == 'this_week'){
+                 // Retrieve records 
+                 $objs = $obj->where('created_at', '>=', $date->subDays(7))->get();
+
+                 // Get the number of customers 
+                 $new_customers = $objs->count();
+ 
+                 // Create an array of customers 
+                 // Associative array format:
+                     // {
+                     //      "1": 9,
+                     //      "2": 15, 
+                     // }
+                 foreach($objs as $obj){
+                     $key = date("d",strtotime($obj['created_at']));
+                     if(array_key_exists($key, $customers)){
+                         $customers[$key] += 1;
+                     }
+                     else{
+                         $customers += array(
+                             $key => 1,
+                         ); 
+                     }
+                 }
+ 
+                 // Retrieve credit and redeem points 
+                 $reward_objs = $reward->where('created_at', '>=', $date->subDays(7))->get();
+ 
+                 // Create an array of credit and redeem points 
+                 // Associative array format:
+                     // {
+                     //      "2": {
+                     //                  "credits": 100,
+                     //                  "redeem": 40
+                     //              },
+                     //      "5": {
+                     //                  "credits": 30,
+                     //                  "redeem":10,
+                     //              }, 
+                     // }
+                 foreach($reward_objs as $reward){
+                     $key = date("d",strtotime($reward['created_at']));
+                     if(array_key_exists($key, $rewards)){
+                         $rewards[$key]['credits'] += $reward['credits'];
+                         $rewards[$key]['redeem'] += $reward['redeem'];
+                     }
+                     else{
+                         $rewards += array(
+                             $key => array(
+                                 "credits" => $reward['credits'],
+                                 "redeem" => $reward['redeem'],
+                             ),
+                         ); 
+                     }
+                 }
+
+                // Retrieve latest rewards transactions
+                $reward_transactions = $reward->where('created_at', '>=', $date->subDays(7))->orderBy('id', 'desc')->limit(20)->get();
+            }
+            else if($filter == 'this_month'){
+                // Retrieve records
                 $objs = $obj->whereMonth('created_at', $month)->get();
 
-                // Get the number of customers in that particular month
+                // Get the number of customers 
                 $new_customers = $objs->count();
 
-                // Create an array of customers in that particular month for each day
+                // Create an array of customers 
                 // Associative array format:
                     // {
                     //      "1": 9,
@@ -294,13 +359,10 @@ class CustomerController extends Controller
                     }
                 }
 
-                // Retrieve credit and redeem points in that particular month
+                // Retrieve credit and redeem points 
                 $reward_objs = $reward->whereMonth('created_at', $month)->get();
 
-                // Initialize array to store the rewards data
-                $rewards = array();
-
-                // Create an array of credit and redeem points of that particular month for each day
+                // Create an array of credit and redeem points 
                 // Associative array format:
                     // {
                     //      "2": {
@@ -327,70 +389,199 @@ class CustomerController extends Controller
                         ); 
                     }
                 }
+
+                // Retrieve latest rewards transactions
+                $reward_transactions = $reward->whereMonth('created_at', $month)->orderBy('id', 'desc')->limit(20)->get();
+            }
+            else if ($filter == "this_year"){
+                // Retrieve records 
+                $objs = $obj->whereYear('created_at', $year)->get();
+
+                // Get count of the customers 
+                $new_customers = $objs->count();
+
+                // Create an array of customers 
+                // Associative array format:
+                    // {
+                    //      "Jan": 1,
+                    //      "Feb": 2, 
+                    // }
+                foreach($objs as $obj){
+                    $key = date("M",strtotime($obj['created_at']));
+                    if(array_key_exists($key, $customers)){
+                        $customers[$key] += 1;
+                    }
+                    else{
+                        $customers += array(
+                            $key => 1,
+                        ); 
+                    }
+                }
+
+                // Retrieve records 
+                $reward_objs = $reward->whereYear('created_at', $year)->get();
+                            
+                // Create an array of credit and redeem points 
+                // Associative array format:
+                    // {
+                    //      "Jan": {
+                    //                  "credits": 100,
+                    //                  "redeem": 40
+                    //              },
+                    //      "Feb": {
+                    //                  "credits": 30,
+                    //                  "redeem":10,
+                    //              }, 
+                    // }
+                foreach($reward_objs as $reward){
+                    $key = date("M",strtotime($reward['created_at']));
+                    if(array_key_exists($key, $rewards)){
+                        $rewards[$key]['credits'] += $reward['credits'];
+                        $rewards[$key]['redeem'] += $reward['redeem'];
+                    }
+                    else{
+                        $rewards += array(
+                            $key => array(
+                                "credits" => $reward['credits'],
+                                "redeem" => $reward['redeem'],
+                            ),
+                        ); 
+                    }
+                }
+
+                // Retrieve latest rewards transactions
+                $reward_transactions = $reward->whereYear('created_at', $year)->orderBy('id', 'desc')->limit(20)->get();
+            }
+            else if($filter == 'all_data'){
+                // Retrieve records 
+                $objs = $obj->all();
+
+                // Get the number of customers 
+                $new_customers = $objs->count();
+
+                // Create an array of customers 
+                // Associative array format:
+                    // {
+                    //      "1": 9,
+                    //      "2": 15, 
+                    // }
+                foreach($objs as $obj){
+                    $key = date("Y",strtotime($obj['created_at']));
+                    if(array_key_exists($key, $customers)){
+                        $customers[$key] += 1;
+                    }
+                    else{
+                        $customers += array(
+                            $key => 1,
+                        ); 
+                    }
+                }
+
+                // Retrieve credit and redeem points 
+                $reward_objs = $reward->whereMonth('created_at', $month)->get();
+
+                // Create an array of credit and redeem points 
+                // Associative array format:
+                    // {
+                    //      "2": {
+                    //                  "credits": 100,
+                    //                  "redeem": 40
+                    //              },
+                    //      "5": {
+                    //                  "credits": 30,
+                    //                  "redeem":10,
+                    //              }, 
+                    // }
+                foreach($reward_objs as $reward){
+                    $key = date("Y",strtotime($reward['created_at']));
+                    if(array_key_exists($key, $rewards)){
+                        $rewards[$key]['credits'] += $reward['credits'];
+                        $rewards[$key]['redeem'] += $reward['redeem'];
+                    }
+                    else{
+                        $rewards += array(
+                            $key => array(
+                                "credits" => $reward['credits'],
+                                "redeem" => $reward['redeem'],
+                            ),
+                        ); 
+                    }
+                }
+
+                // Retrieve latest rewards transactions
+                $reward_transactions = $reward->orderBy('id',"desc")->limit(20)->get();
+            }
+
+            return view("apps.".$this->app.".".$this->module.".dashboard")
+            ->with("app", $this)
+            ->with("customers", json_encode($customers))
+            ->with("rewards", json_encode($rewards))
+            ->with("filter", $filter)
+            ->with("new_customers", $new_customers)
+            ->with("total_customers", $total_customers)
+            ->with("reward_transactions", $reward_transactions);
+        }
+
+        // Default filter is set to this year
+        $filter = "this_year";
+
+        // Retrieve records 
+        $objs = $obj->whereYear('created_at', $year)->get();
+
+        // Get count of the customers
+        $new_customers = $objs->count();
+
+        // Create an array of customers
+        // Associative array format:
+            // {
+            //      "Jan": 1,
+            //      "Feb": 2, 
+            // }
+        foreach($objs as $obj){
+            $key = date("M",strtotime($obj['created_at']));
+            if(array_key_exists($key, $customers)){
+                $customers[$key] += 1;
+            }
+            else{
+                $customers += array(
+                    $key => 1,
+                ); 
             }
         }
-        else{
-            // Default filter is det to month
-            $filter = "month";
 
-            // Retrieve records of that particular year
-            $objs = $obj->whereYear('created_at', $year)->get();
-
-            // Get count of the customers in that particular year
-            $new_customers = $objs->count();
-
-            // Create an array of customers in that particular year for each month
-            // Associative array format:
-                // {
-                //      "Jan": 1,
-                //      "Feb": 2, 
-                // }
-            foreach($objs as $obj){
-                $key = date("M",strtotime($obj['created_at']));
-                if(array_key_exists($key, $customers)){
-                    $customers[$key] += 1;
-                }
-                else{
-                    $customers += array(
-                        $key => 1,
-                    ); 
-                }
+        // Retrieve records 
+        $reward_objs = $reward->whereYear('created_at', $year)->get();
+                    
+        // Create an array of credit and redeem points 
+        // Associative array format:
+            // {
+            //      "Jan": {
+            //                  "credits": 100,
+            //                  "redeem": 40
+            //              },
+            //      "Feb": {
+            //                  "credits": 30,
+            //                  "redeem":10,
+            //              }, 
+            // }
+        foreach($reward_objs as $reward){
+            $key = date("M",strtotime($reward['created_at']));
+            if(array_key_exists($key, $rewards)){
+                $rewards[$key]['credits'] += $reward['credits'];
+                $rewards[$key]['redeem'] += $reward['redeem'];
             }
-
-            // Retrieve records of that particular year
-            $reward_objs = $reward->whereYear('created_at', $year)->get();
-
-            // Create an array to store the rewards data
-            $rewards = array();
-                        
-            // Create an array of credit and redeem points of that particular year for each month
-            // Associative array format:
-                // {
-                //      "Jan": {
-                //                  "credits": 100,
-                //                  "redeem": 40
-                //              },
-                //      "Feb": {
-                //                  "credits": 30,
-                //                  "redeem":10,
-                //              }, 
-                // }
-            foreach($reward_objs as $reward){
-                $key = date("M",strtotime($reward['created_at']));
-                if(array_key_exists($key, $rewards)){
-                    $rewards[$key]['credits'] += $reward['credits'];
-                    $rewards[$key]['redeem'] += $reward['redeem'];
-                }
-                else{
-                    $rewards += array(
-                        $key => array(
-                            "credits" => $reward['credits'],
-                            "redeem" => $reward['redeem'],
-                        ),
-                    ); 
-                }
+            else{
+                $rewards += array(
+                    $key => array(
+                        "credits" => $reward['credits'],
+                        "redeem" => $reward['redeem'],
+                    ),
+                ); 
             }
         }
+
+        // Retrieve latest rewards transactions
+        $reward_transactions = $reward->orderBy('id', 'desc')->limit(20)->get();
         
         return view("apps.".$this->app.".".$this->module.".dashboard")
             ->with("app", $this)
@@ -398,6 +589,7 @@ class CustomerController extends Controller
             ->with("rewards", json_encode($rewards))
             ->with("filter", $filter)
             ->with("new_customers", $new_customers)
-            ->with("total_customers", $total_customers);
+            ->with("total_customers", $total_customers)
+            ->with("reward_transactions", $reward_transactions);
     }
 }

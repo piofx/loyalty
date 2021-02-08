@@ -5,23 +5,25 @@
 	<div id="rewards_data" data-value="{{ $rewards }}">
 	</div>
 
-	<div class="card card-custom p-3 mb-3">
+	<div class="container bg-secondary text-white p-3 mb-3">
 		<h5>Filter:</h5>
 		<form action="{{ route('Dashboard') }}" method="GET" class="d-flex" id="filter_form">
 			<select class="form-select" name="filter" onchange="filter_charts_result()">
-				<option value="day" @if($filter ?? ""){{$filter == 'day' ? "selected" : "" }}@endif>Day</option>
-				<option value="month" @if($filter ?? ""){{$filter == 'month' ? "selected" : "" }}@endif>Month</option>
+				<option value="today" @if($filter ?? ""){{$filter == 'today' ? "selected" : "" }}@endif>Today</option>
+				<option value="this_week" @if($filter ?? ""){{$filter == 'this_week' ? "selected" : "" }}@endif>Last 7 days</option>
+				<option value="this_month" @if($filter ?? ""){{$filter == 'this_month' ? "selected" : "" }}@endif>This Month</option>
+				<option value="this_year" @if($filter ?? ""){{$filter == 'this_year' ? "selected" : "" }}@endif>This Year</option>
+				<option value="all_data" @if($filter ?? ""){{$filter == 'all_data' ? "selected" : "" }}@endif>All Data</option>
 			</select>
 		</form>
 	</div>
 
-	<div class="container-mt-20">
-		<div class="row">
-		<!--begin::Card-->
-			<div class="col-lg-3">
+	<div class="row">
+		<div class="col-12 col-lg-9">
+			<div class="row my-5">
 				<!--begin::Tiles Widget 12-->
-				<div class="card card-custom gutter-b" style="height: 150px">
-					<div class="card-body">
+				<div class="col-12 col-lg-6" style="height: 150px;">
+					<div class="card-body bg-white shadow rounded">
 						<span class="svg-icon svg-icon-3x svg-icon-success">
 							<!--begin::Svg Icon | path:assets/media/svg/icons/Communication/Group.svg-->
 							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -39,8 +41,8 @@
 				</div>
 				<!--end::Tiles Widget 12-->
 				<!--begin::Tiles Widget 11-->
-				<div class="card card-custom bg-success gutter-b" style="height: 150px">
-					<div class="card-body">
+				<div class="col-12 col-lg-6" style="height: 150px">
+					<div class="card-body bg-success shadow rounded">
 						<span class="svg-icon svg-icon-3x svg-icon-white ml-n2">
 							<!--begin::Svg Icon | path:assets/media/svg/icons/Layout/Layout-4-blocks.svg-->
 							<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -58,41 +60,59 @@
 				</div>
 				<!--end::Tiles Widget 11-->
 			</div>
-																					
-				<!--begin::Card-->
-			<div class="col-lg-9">
-				<div class="card card-custom gutter-b">
-					
-					<div class="card-header">
-						<div class="card-title">
-							<h3 class="card-label">Customers</h3>
-						</div>
-					</div>
-					<div class="card-body">
-						<!--begin::Chart-->
-						<div id="customers_chart"></div>
-						<!--end::Chart-->
+																		
+			<!--begin::Card-->
+			<div class="card card-custom gutter-b">
+				<div class="card-header">
+					<div class="card-title">
+						<h3 class="card-label">Customers</h3>
 					</div>
 				</div>
-				<!--end::Card-->
+				<div class="card-body">
+					<!--begin::Chart-->
+					<div id="customers_chart"></div>
+					<!--end::Chart-->
+				</div>
+			</div>
+			<!--end::Card-->
+
+			<div class="row">
+				<div class="col-12">
+					<!--begin::Card-->
+					<div class="card card-custom gutter-b">
+						<div class="card-header">
+							<div class="card-title">
+								<h3 class="card-label">Credits/Redeem</h3>
+							</div>
+						</div>
+						<div class="card-body">
+							<!--begin::Chart-->
+							<div id="rewards_chart"></div>
+							<!--end::Chart-->
+						</div>
+					</div>
+					<!--end::Card-->
+				</div>
 			</div>
 		</div>
-		<div class="row">
-			<div class="col-12">
-				<!--begin::Card-->
-				<div class="card card-custom gutter-b">
-					<div class="card-header">
-						<div class="card-title">
-							<h3 class="card-label">Credits/Redeem</h3>
+		<div class="col-12 col-lg-3">	
+			<div class="bg-white p-3 rounded shadow">
+				<h3 class="text-center text-muted my-3">Transactions</h3>		
+				<div class="timeline timeline-2">
+					<div class="timeline-bar"></div>
+					@foreach($reward_transactions as $r_t)
+						<div class="timeline-item">
+							<div class="timeline-badge {{ $r_t->credits != 0 ? 'bg-success' : 'bg-danger' }}"></div>
+							<div class="timeline-content d-flex align-items-center justify-content-between">
+								<span class="mr-3">
+									<h5 class="d-inline text-muted">{{ $r_t->customer->name }}</h5>
+									<span class="label label-inline {{ $r_t->credits != 0 ? 'label-light-success' : 'label-light-danger' }} font-weight-bolder">{{ $r_t->credits != 0 ? '+'.$r_t->credits : '-'.$r_t->redeem }}</span>
+								</span>
+								<span class="text-muted text-right">{{ $r_t->created_at->diffForHumans() }}</span>
+							</div>
 						</div>
-					</div>
-					<div class="card-body">
-						<!--begin::Chart-->
-						<div id="rewards_chart"></div>
-						<!--end::Chart-->
-					</div>
+					@endforeach
 				</div>
-				<!--end::Card-->
 			</div>
 		</div>
 	</div>

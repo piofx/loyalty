@@ -149,8 +149,8 @@
     <div class="bg-white p-3 rounded-lg shadow">
         <!-- Table -->
         <table class="table table-borderless bg-white">
-            <tr class="border-bottom">
-                <th scope="col" class="p-3">Transaction Id</th>
+            <tr class="border-bottom text-muted">
+                <th scope="col" class="p-3">T x N</th>
                 <th scope="col" class="p-3 text-center text-decoration-none">Date</th>
                 <th scope="col" class="p-3 text-center">Activity</th>
             </tr>
